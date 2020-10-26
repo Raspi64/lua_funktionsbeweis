@@ -1,0 +1,8 @@
+# Target files
+/cmake-build-debug/
+
+# IntelliJ / CLion Files
+/.idea/
+*.iml
+*.iws
+*.ipr
