@@ -5,7 +5,7 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-#include <string.h>
+#include <cstring>
 
 
 static void stackDump(lua_State *L) {
@@ -47,14 +47,17 @@ int main(int argc, char *argv[]) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
+    // register custom function
     lua_register(L, "test", test);
 
-    // execute script
+    // load script on top of stack
     const char lua_script[] = "test()";
     int load_stat = luaL_loadbuffer(L, lua_script, strlen(lua_script), lua_script);
 
+    // show stack content
     stackDump(L);
 
+    // call function on top of the stack
     lua_pcall(L, 0, 0, 0);
 
     // cleanup
