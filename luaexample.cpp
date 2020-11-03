@@ -6,6 +6,7 @@ extern "C" {
 }
 
 #include <cstring>
+#include <assert.h>
 
 
 void exec_script(lua_State *L, const char *lua_script);
@@ -70,6 +71,34 @@ int nop_function(lua_State *L) {
     return 0;
 }
 
+void call_lua_function(lua_State *L) {
+
+    const char *function_name = "tonumber";
+    const char *number_input_string = "123234";
+    int number_input = 123234;
+
+
+    printf("Calling %s with parameter %d\n", function_name, number_input);
+
+    lua_getglobal(L, function_name);  /* function to be called */
+    lua_pushstring(L, number_input_string);   /* push 1st argument */
+    /* do the call (1 arguments, 1 result) */
+    if (lua_pcall(L, 1, 1, 0) != 0) {
+        printf("error running function '%s': %s\n", function_name, lua_tostring(L, -1));
+    }
+    /* retrieve result */
+    if (!lua_isnumber(L, -1)) {
+        printf("function '%s' must return a number\n", function_name);
+    }
+    int z = lua_tonumber(L, -1);
+    lua_pop(L, 1);  /* pop returned value */
+    if (z != 123234) {
+        printf("return should be %s, but is %d\n", number_input_string, z);
+    } else {
+        printf("return should be %s, and is %d\n", number_input_string, z);
+    }
+}
+
 int main(int argc, char *argv[]) {
     // initialization
     lua_State *L = luaL_newstate();
@@ -81,7 +110,9 @@ int main(int argc, char *argv[]) {
     // register custom function
     lua_register(L, "do_math", do_math_things);
 
-    printf("Erfolgreicher Aufruf:\n");
+    call_lua_function(L);
+
+    printf("\n\n\nErfolgreicher Aufruf:\n");
     {
         const char lua_script[] = "local x = 15\n"
                                   "add, sub, mul, div = do_math(x, 5)\n"
@@ -93,8 +124,8 @@ int main(int argc, char *argv[]) {
         // load script on top of stack
         exec_script(L, lua_script);
     }
-    printf("\n\n\nFehlende Variable:\n");
 
+    printf("\n\n\nFehlende Variable:\n");
     {
         const char lua_script[] = "do_math(x, 5)";
         exec_script(L, lua_script);
