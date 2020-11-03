@@ -10,7 +10,10 @@ extern "C" {
 
 void exec_script(lua_State *L, const char *lua_script);
 
-static void stackDump(lua_State *L) {
+void replace_function_in_table(lua_State *L, const char *table, const char *field, lua_CFunction function);
+
+int stackDump(lua_State *L) {
+    printf("Stackdump: ");
     int i;
     int top = lua_gettop(L);
     for (i = 1; i <= top; i++) {  /* repeat for each level */
@@ -18,7 +21,7 @@ static void stackDump(lua_State *L) {
         switch (t) {
 
             case LUA_TSTRING:  /* strings */
-                printf("`%s'", lua_tostring(L, i));
+                printf("'%s'", lua_tostring(L, i));
                 break;
 
             case LUA_TBOOLEAN:  /* booleans */
@@ -34,9 +37,12 @@ static void stackDump(lua_State *L) {
                 break;
 
         }
-        printf("  ");  /* put a separator */
+        if (i < top) {
+            printf("  ");  /* put a separator */
+        }
     }
     printf("\n");  /* end the listing */
+    return 0;
 }
 
 int do_math_things(lua_State *L) {
@@ -59,10 +65,18 @@ int do_math_things(lua_State *L) {
     return 4;
 }
 
+int nop_function(lua_State *L) {
+    printf("caught function!!!\n");
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     // initialization
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
+
+    lua_register(L, "print", stackDump);
+    replace_function_in_table(L, "os", "exit", nop_function); // replaces `os.exit` with `nop_function`
 
     // register custom function
     lua_register(L, "do_math", do_math_things);
@@ -74,7 +88,8 @@ int main(int argc, char *argv[]) {
                                   "print(x .. ' + 5 = ' .. add)\n"
                                   "print(x .. ' - 5 = ' .. sub)\n"
                                   "print(x .. ' * 5 = ' .. mul)\n"
-                                  "print(x .. ' / 5 = ' .. div)\n";
+                                  "print(x .. ' / 5 = ' .. div)\n"
+                                  "os.exit()\n";
         // load script on top of stack
         exec_script(L, lua_script);
     }
@@ -96,6 +111,13 @@ int main(int argc, char *argv[]) {
     // cleanup
     lua_close(L);
     return 0;
+}
+
+void replace_function_in_table(lua_State *L, const char *table, const char *field, lua_CFunction function) {
+    lua_getglobal(L, table);
+    lua_pushstring(L, field);
+    lua_pushcfunction(L, function);
+    lua_settable(L, -3);
 }
 
 void exec_script(lua_State *L, const char *lua_script) {
