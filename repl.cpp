@@ -50,13 +50,10 @@ void repl() {
             printf("Exiting...\n");
             break;
         }
-        char *repl_input;
-        asprintf(&repl_input, "print(%s)", user_input);
-        if (lua_plugin::exec_script(repl_input) != LUA_OK) {
+        if (lua_plugin::exec_script(user_input) != LUA_OK) {
             printf("Error: %s\n", lua_plugin::get_last_error());
         }
         free(user_input);
-        free(repl_input);
     }
 }
 
