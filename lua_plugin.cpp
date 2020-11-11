@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "lua_plugin.h"
+#include "lua_plugin_io.h"
 
 namespace lua_plugin {
     static lua_State *L;
@@ -24,6 +25,7 @@ namespace lua_plugin {
     void plugin_init() {
         L = luaL_newstate();
         luaL_openlibs(L);
+        replace_stdio(L);
 
         replace_function_in_table("os", "exit", lua_os_exit); // replaces `os.exit` with `nop_function`
     }

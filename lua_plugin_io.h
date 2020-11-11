@@ -1,7 +1,3 @@
-//
-// Created by simon on 11/10/20.
-//
-
 #ifndef LUA_PLUGIN_LUA_PLUGIN_IO_H
 #define LUA_PLUGIN_LUA_PLUGIN_IO_H
 
@@ -12,7 +8,7 @@ extern "C" {
 }
 
 namespace lua_plugin {
-
+    void replace_stdio(lua_State *L);
 }
 
 

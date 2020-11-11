@@ -7,6 +7,7 @@ extern "C" {
 #include <cstdlib>
 #include "lua_plugin.h"
 #include "lua_plugin_colors.h"
+#include "lua_plugin_io.h"
 
 static int call_lua_function(lua_State *L);
 
@@ -19,6 +20,7 @@ void repl();
 int main(int argc, char *argv[]) {
     lua_plugin::plugin_init();
     lua_State *L = lua_plugin::get_state();
+//    lua_plugin::replace_stdio(L);
 
     lua_plugin::init_color_table(L);
 
@@ -26,7 +28,16 @@ int main(int argc, char *argv[]) {
     lua_register(L, "stackdump", stackDump);
     lua_register(L, "call_lua_function", call_lua_function);
 
-    repl();
+//    repl();
+
+    int err_code = lua_plugin::exec_script("while true do\n"
+                                           "\tlocal t = io.read()\n"
+                                           "\tprint('Got:' .. t)\n"
+                                           "end");
+
+    if (err_code != LUA_OK) {
+        printf("%s\n", lua_plugin::get_last_error());
+    }
 
     lua_plugin::plugin_exit();
     return 0;
